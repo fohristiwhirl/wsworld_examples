@@ -15,6 +15,7 @@ const (
 func main() {
     ws.RegisterSprite("space ship.png")
     ws.RegisterSprite("globe.png")
+    ws.RegisterSound("shot.wav")
     ws.Start("Basic Example", "127.0.0.1:8000", "/", "resources", WIDTH, HEIGHT)
 
     var ticker = time.Tick(time.Second / FPS)
@@ -34,9 +35,11 @@ func main() {
 
         if (player.X > WIDTH - 16 && player.Speedx > 0) || (player.X < 16 && player.Speedx < 0) {
             player.Speedx *= -1
+            c.PlaySound("shot.wav")
         }
         if (player.Y > HEIGHT - 16 && player.Speedy > 0) || (player.Y < 16 && player.Speedy < 0) {
             player.Speedy *= -1
+            c.PlaySound("shot.wav")
         }
 
         player.X += player.Speedx
