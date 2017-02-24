@@ -49,7 +49,7 @@ func main() {
         orbiter.X = player.X + 50 * math.Cos(angle)
         orbiter.Y = player.Y + 50 * math.Sin(angle)
 
-        <- ticker   // Instead, we could optionally use ws.WaitForRequest() to sync up with client requests
+        <- ticker
         c.Send()
     }
 }
