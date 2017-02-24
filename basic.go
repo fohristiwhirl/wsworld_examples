@@ -16,13 +16,13 @@ func main() {
     ws.RegisterSprite("space ship.png")
     ws.RegisterSprite("globe.png")
     ws.RegisterSound("shot.wav")
-    ws.Start("Basic Example", "127.0.0.1:8000", "/", "resources", WIDTH, HEIGHT)
+    ws.Start("Basic Example", "127.0.0.1:8000", "/", "resources", WIDTH, HEIGHT, FPS)
 
     var ticker = time.Tick(time.Second / FPS)
 
     var angle float64
 
-    c := ws.NewCanvas(FPS)
+    c := ws.NewCanvas()
 
     player := c.NewSprite("space ship.png", 100, 100, 0, 0)
     orbiter := c.NewSprite("globe.png", player.X, player.Y, 0, 0)

@@ -6,12 +6,13 @@ package main
 import (
     "math"
     "math/rand"
+    "time"
 
     ws "github.com/fohristiwhirl/wsworld"
 )
 
 const (
-    FPS = 60        // This value is a lie in this example; the actual FPS is based on how often the client requests a frame.
+    FPS = 60
     WIDTH = 1750
     HEIGHT = 850
     QUEENS = 8      // If your computer can handle it, try 30 queens and 4500 beasts.
@@ -49,16 +50,18 @@ type Dood struct {
 func main() {
 
     ws.RegisterSprite("space ship.png")
-    ws.Start("Swarmz 4.0", "127.0.0.1:8000", "/", "resources", WIDTH, HEIGHT)
+    ws.Start("Swarmz 4.0", "127.0.0.1:8000", "/", "resources", WIDTH, HEIGHT, FPS)
 
-    c := ws.NewCanvas(FPS)
+    var ticker = time.Tick(time.Second / FPS)
+
+    c := ws.NewCanvas()
 
     s := Sim{}
     s.Init(c)
 
     for {
         s.Iterate()
-        ws.WaitForRequest()
+        <- ticker
         c.Send()
     }
 }
