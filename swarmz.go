@@ -113,6 +113,19 @@ func (s *Sim) MovePlayer() {
     if ws.KeyDown("s") { speedy += 0.2 }
     if ws.KeyDown("d") { speedx += 0.2 }
 
+    if ws.KeyDown("space") {
+        if speedx < 0.1 && speedx > -0.1 {
+            speedx = 0
+        } else {
+            speedx *= 0.95
+        }
+        if speedy < 0.1 && speedy > -0.1 {
+            speedy = 0
+        } else {
+            speedy *= 0.95
+        }
+    }
+
     // Bounce off walls...
 
     if (x < 16 && speedx < 0) || (x >  WIDTH - 16 && speedx > 0) { speedx *= -1 }
