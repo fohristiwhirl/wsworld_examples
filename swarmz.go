@@ -34,7 +34,8 @@ type Sim struct {
     tick int
     queens []*Dood
     beasts []*Dood
-    player *ws.Entity
+    players map[int]*Player
+    canvas *ws.Canvas
 }
 
 type Dood struct {
@@ -44,6 +45,11 @@ type Dood struct {
     sim *Sim
 }
 
+type Player struct {
+    pid int
+    ent *ws.Entity
+}
+
 func main() {
 
     ws.RegisterSprite("space ship.png")
@@ -51,43 +57,67 @@ func main() {
 
     var ticker = time.Tick(time.Second / FPS)
 
-    c := ws.NewCanvas()
-
     s := Sim{}
-    s.Init(c)
-
-    var i int
+    s.Init()
 
     for {
+        if ws.PlayerCount() == 0 {
+            time.Sleep(5 * time.Millisecond)
+            continue
+        }
+        s.UpdatePlayerSet()
         s.Iterate()
         <- ticker
-        i++
-        if i % 3 == 0 {     // As a test of the client's interpolation, just send every third frame
-            c.Send()
-        }
+        s.canvas.SendToAll()        // It is also OK to send less frames than the client needs, e.g. 20 per second, but here we send all.
     }
 }
 
-func (s *Sim) Init(c *ws.Canvas) {
+func (s *Sim) Init() {
+
+    s.canvas = ws.NewCanvas()
+
+    s.players = make(map[int]*Player)
 
     for n := 0 ; n < QUEENS ; n++ {
-        new_ent := c.NewPoint("#ffffff", WIDTH / 2, HEIGHT / 2, 0, 0)
+        new_ent := s.canvas.NewPoint("#ffffff", WIDTH / 2, HEIGHT / 2, 0, 0)
         new_ent.Hidden = true
         s.queens = append(s.queens, &Dood{ent: new_ent, species: QUEEN, target: nil, sim: s})
     }
 
     for n := 0 ; n < BEASTS ; n++ {
-        new_ent := c.NewPoint("#00ff00", WIDTH / 2, HEIGHT / 2, 0, 0)
+        new_ent := s.canvas.NewPoint("#00ff00", WIDTH / 2, HEIGHT / 2, 0, 0)
         s.beasts = append(s.beasts, &Dood{ent: new_ent, species: BEAST, target: nil, sim: s})
     }
+}
 
-    s.player = c.NewSprite("space ship.png", 100, 100, 0, 0)
+func (s *Sim) UpdatePlayerSet() {
+
+    current_connections := ws.PlayerSet()
+
+    // Delete lost connections...
+
+    for key := range s.players {
+        if current_connections[key] == false {
+            s.players[key].ent.Remove()             // Remove sprite from world
+            delete(s.players, key)                  // Remove player from our list (map) of players
+        }
+    }
+
+    // Add new connections...
+
+    for key := range current_connections {
+        if s.players[key] == nil {
+            newplayer := new(Player)
+            newplayer.pid = key
+            newplayer.ent = s.canvas.NewSprite("space ship.png", 100, 100, 0, 0)
+            s.players[key] = newplayer
+        }
+    }
 }
 
 func (s *Sim) Iterate() {
     s.tick += 1
     s.MoveDoods()
-    s.MovePlayer()
 }
 
 func (s *Sim) MoveDoods() {
@@ -97,20 +127,23 @@ func (s *Sim) MoveDoods() {
     for _, d := range s.beasts {
         d.Move()
     }
+    for _, d := range s.players {
+        d.Move()
+    }
 }
 
-func (s *Sim) MovePlayer() {
+func (p *Player) Move() {
 
-    x, y, speedx, speedy := s.player.X, s.player.Y, s.player.Speedx, s.player.Speedy
+    x, y, speedx, speedy := p.ent.X, p.ent.Y, p.ent.Speedx, p.ent.Speedy
 
     // Respond to input...
 
-    if ws.KeyDown("w") { speedy -= 0.2 }
-    if ws.KeyDown("a") { speedx -= 0.2 }
-    if ws.KeyDown("s") { speedy += 0.2 }
-    if ws.KeyDown("d") { speedx += 0.2 }
+    if ws.KeyDown(p.pid, "w") { speedy -= 0.2 }
+    if ws.KeyDown(p.pid, "a") { speedx -= 0.2 }
+    if ws.KeyDown(p.pid, "s") { speedy += 0.2 }
+    if ws.KeyDown(p.pid, "d") { speedx += 0.2 }
 
-    if ws.KeyDown("space") {
+    if ws.KeyDown(p.pid, "space") {
         if speedx < 0.1 && speedx > -0.1 {
             speedx = 0
         } else {
@@ -139,9 +172,9 @@ func (s *Sim) MovePlayer() {
 
     // Update entity...
 
-    s.player.Speedx = speedx
-    s.player.Speedy = speedy
-    s.player.Move()
+    p.ent.Speedx = speedx
+    p.ent.Speedy = speedy
+    p.ent.Move()
 }
 
 func (d *Dood) Move() {
@@ -195,16 +228,19 @@ func (d *Dood) Move() {
 
     // Player avoidance...
 
-    dx := d.sim.player.X - x
-    dy := d.sim.player.Y - y
+    for _, p := range d.sim.players {
 
-    distance_squared := dx * dx + dy * dy
-    distance := math.Sqrt(distance_squared)
+        dx := p.ent.X - x
+        dy := p.ent.Y - y
 
-    if distance > 1 {
-        adjusted_force := AVOID_STRENGTH / (distance_squared * distance)
-        speedx -= dx * adjusted_force * rand.Float64()
-        speedy -= dy * adjusted_force * rand.Float64()
+        distance_squared := dx * dx + dy * dy
+        distance := math.Sqrt(distance_squared)
+
+        if distance > 1 {
+            adjusted_force := AVOID_STRENGTH / (distance_squared * distance)
+            speedx -= dx * adjusted_force * rand.Float64()
+            speedy -= dy * adjusted_force * rand.Float64()
+        }
     }
 
     // Throttle speed...
