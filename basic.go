@@ -16,7 +16,7 @@ func main() {
     ws.RegisterSprite("space ship.png")
     ws.RegisterSprite("globe.png")
     ws.RegisterSound("shot.wav")
-    ws.Start("Basic Example", "127.0.0.1:8000", "/", "resources", WIDTH, HEIGHT, FPS)
+    ws.Start("Basic Example", "127.0.0.1:8000", "/", "resources", WIDTH, HEIGHT, FPS, false)
 
     var ticker = time.Tick(time.Second / FPS)
 
@@ -28,10 +28,10 @@ func main() {
     orbiter := c.NewSprite("globe.png", player.X, player.Y, 0, 0)
 
     for {
-        if ws.KeyDown("a") && player.Speedx > -2 && player.X > 16 { player.Speedx -= 0.1 }
-        if ws.KeyDown("d") && player.Speedx < 2 && player.X < WIDTH - 16 { player.Speedx += 0.1 }
-        if ws.KeyDown("w") && player.Speedy > -2 && player.Y > 16 { player.Speedy -= 0.1 }
-        if ws.KeyDown("s") && player.Speedy < 2 && player.Y < HEIGHT - 16 { player.Speedy += 0.1 }
+        if ws.KeyDown(-1, "w") && player.Speedy > -2 && player.Y > 16          { player.Speedy -= 0.1 }
+        if ws.KeyDown(-1, "a") && player.Speedx > -2 && player.X > 16          { player.Speedx -= 0.1 }
+        if ws.KeyDown(-1, "s") && player.Speedy <  2 && player.Y < HEIGHT - 16 { player.Speedy += 0.1 }
+        if ws.KeyDown(-1, "d") && player.Speedx <  2 && player.X <  WIDTH - 16 { player.Speedx += 0.1 }
 
         if (player.X > WIDTH - 16 && player.Speedx > 0) || (player.X < 16 && player.Speedx < 0) {
             player.Speedx *= -1
@@ -50,6 +50,6 @@ func main() {
         orbiter.Y = player.Y + 50 * math.Sin(angle)
 
         <- ticker
-        c.Send()
+        c.SendToAll()
     }
 }

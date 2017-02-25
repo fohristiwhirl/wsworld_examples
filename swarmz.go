@@ -53,7 +53,7 @@ type Player struct {
 func main() {
 
     ws.RegisterSprite("space ship.png")
-    ws.Start("Swarmz 4.0", "127.0.0.1:8000", "/", "resources", WIDTH, HEIGHT, FPS)
+    ws.Start("Swarmz 4.0", "127.0.0.1:8000", "/", "resources", WIDTH, HEIGHT, FPS, true)
 
     var ticker = time.Tick(time.Second / FPS)
 
@@ -65,8 +65,10 @@ func main() {
             time.Sleep(5 * time.Millisecond)
             continue
         }
+
         s.UpdatePlayerSet()
         s.Iterate()
+
         <- ticker
         s.canvas.SendToAll()        // It is also OK to send less frames than the client needs, e.g. 20 per second, but here we send all.
     }
