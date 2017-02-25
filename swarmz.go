@@ -59,10 +59,15 @@ func main() {
     s := Sim{}
     s.Init(c)
 
+    var i int
+
     for {
         s.Iterate()
         <- ticker
-        c.Send()
+        i++
+        if i % 3 == 0 {     // As a test of the client's interpolation, just send every third frame
+            c.Send()
+        }
     }
 }
 
