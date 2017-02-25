@@ -1,8 +1,5 @@
 package main
 
-// This example is a bit of a scam, since programming the whole
-// thing in JavaScript would be more performant than this hybrid.
-
 import (
     "math"
     "math/rand"
@@ -15,7 +12,7 @@ const (
     FPS = 60
     WIDTH = 1750
     HEIGHT = 850
-    QUEENS = 8      // If your computer can handle it, try 30 queens and 4500 beasts.
+    QUEENS = 8
     BEASTS = 1900
     BEAST_MAX_SPEED = 7
     QUEEN_MAX_SPEED = 5.5
