@@ -31,23 +31,27 @@ const (
 )
 
 type Sim struct {
-    tick int
     queens []*Dood
     beasts []*Dood
     players map[int]*Player
-    canvas *ws.Canvas
 }
 
 type Dood struct {
-    ent *ws.Entity      // This is the part that the engine knows about, containing X, Y, Speedx, Speedy
+    x float64
+    y float64
+    speedx float64
+    speedy float64
     species int
-    target *ws.Entity
+    target *Dood
     sim *Sim
 }
 
 type Player struct {
     pid int
-    ent *ws.Entity
+    x float64
+    y float64
+    speedx float64
+    speedy float64
 }
 
 func main() {
@@ -60,6 +64,8 @@ func main() {
     s := Sim{}
     s.Init()
 
+    c := ws.NewCanvas()
+
     for {
         if ws.PlayerCount() == 0 {
             time.Sleep(5 * time.Millisecond)
@@ -68,27 +74,25 @@ func main() {
 
         s.UpdatePlayerSet()
         s.Iterate()
+        c.Clear()
+        s.Draw(c)
 
         <- ticker
-        s.canvas.SendToAll()        // It is also OK to send less frames than the client needs, e.g. 20 per second, but here we send all.
+
+        c.SendToAll()
     }
 }
 
 func (s *Sim) Init() {
 
-    s.canvas = ws.NewCanvas()
-
     s.players = make(map[int]*Player)
 
     for n := 0 ; n < QUEENS ; n++ {
-        new_ent := s.canvas.NewPoint("#ffffff", WIDTH / 2, HEIGHT / 2, 0, 0)
-        new_ent.Hidden = true
-        s.queens = append(s.queens, &Dood{ent: new_ent, species: QUEEN, target: nil, sim: s})
+        s.queens = append(s.queens, &Dood{WIDTH / 2, HEIGHT / 2, 0, 0, QUEEN, nil, s})
     }
 
     for n := 0 ; n < BEASTS ; n++ {
-        new_ent := s.canvas.NewPoint("#00ff00", WIDTH / 2, HEIGHT / 2, 0, 0)
-        s.beasts = append(s.beasts, &Dood{ent: new_ent, species: BEAST, target: nil, sim: s})
+        s.beasts = append(s.beasts, &Dood{WIDTH / 2, HEIGHT / 2, 0, 0, QUEEN, nil, s})
     }
 }
 
@@ -100,8 +104,7 @@ func (s *Sim) UpdatePlayerSet() {
 
     for key := range s.players {
         if current_connections[key] == false {
-            s.players[key].ent.Remove()             // Remove sprite from world
-            delete(s.players, key)                  // Remove player from our list (map) of players
+            delete(s.players, key)
         }
     }
 
@@ -111,18 +114,14 @@ func (s *Sim) UpdatePlayerSet() {
         if s.players[key] == nil {
             newplayer := new(Player)
             newplayer.pid = key
-            newplayer.ent = s.canvas.NewSprite("space ship.png", 100, 100, 0, 0)
+            newplayer.x = 100
+            newplayer.y = 100
             s.players[key] = newplayer
         }
     }
 }
 
 func (s *Sim) Iterate() {
-    s.tick += 1
-    s.MoveDoods()
-}
-
-func (s *Sim) MoveDoods() {
     for _, d := range s.queens {
         d.Move()
     }
@@ -134,9 +133,20 @@ func (s *Sim) MoveDoods() {
     }
 }
 
+func (s *Sim) Draw(c *ws.Canvas) {
+
+    for _, dood := range s.beasts {
+        c.AddPoint("#00ff00", dood.x, dood.y, dood.speedx, dood.speedy)
+    }
+
+    for _, p := range s.players {
+        c.AddSprite("space ship.png", p.x, p.y, p.speedx, p.speedy)
+    }
+}
+
 func (p *Player) Move() {
 
-    x, y, speedx, speedy := p.ent.X, p.ent.Y, p.ent.Speedx, p.ent.Speedy
+    x, y, speedx, speedy := p.x, p.y, p.speedx, p.speedy
 
     // Respond to input...
 
@@ -174,15 +184,15 @@ func (p *Player) Move() {
 
     // Update entity...
 
-    p.ent.Speedx = speedx
-    p.ent.Speedy = speedy
-    p.ent.Move()
+    p.speedx = speedx
+    p.speedy = speedy
+    p.x += speedx
+    p.y += speedy
 }
 
 func (d *Dood) Move() {
 
-    ent := d.ent
-    x, y, speedx, speedy := ent.X, ent.Y, ent.Speedx, ent.Speedy
+    x, y, speedx, speedy := d.x, d.y, d.speedx, d.speedy
 
     var turnprob, maxspeed, accelmod float64
     switch d.species {
@@ -198,12 +208,12 @@ func (d *Dood) Move() {
 
     // Chase target...
 
-    if d.target == nil || rand.Float64() < turnprob || d.target == ent {
+    if d.target == nil || rand.Float64() < turnprob || d.target == d {
         tar_id := rand.Intn(QUEENS)
-        d.target = d.sim.queens[tar_id].ent
+        d.target = d.sim.queens[tar_id]
     }
 
-    vecx, vecy := unit_vector(x, y, d.target.X, d.target.Y)
+    vecx, vecy := unit_vector(x, y, d.target.x, d.target.y)
 
     if vecx == 0 && vecy == 0 {
         speedx += rand.Float64() * 2 - 1 * accelmod
@@ -232,8 +242,8 @@ func (d *Dood) Move() {
 
     for _, p := range d.sim.players {
 
-        dx := p.ent.X - x
-        dy := p.ent.Y - y
+        dx := p.x - x
+        dy := p.y - y
 
         distance_squared := dx * dx + dy * dy
         distance := math.Sqrt(distance_squared)
@@ -247,7 +257,7 @@ func (d *Dood) Move() {
 
     // Throttle speed...
 
-    speed := math.Sqrt(ent.Speedx * ent.Speedx + ent.Speedy * ent.Speedy)
+    speed := math.Sqrt(speedx * speedx + speedy * speedy)
 
     if speed > maxspeed {
         speedx *= maxspeed / speed
@@ -256,9 +266,10 @@ func (d *Dood) Move() {
 
     // Update entity...
 
-    ent.Speedx = speedx
-    ent.Speedy = speedy
-    ent.Move()
+    d.speedx = speedx
+    d.speedy = speedy
+    d.x += speedx
+    d.y += speedy
 }
 
 func unit_vector(x1, y1, x2, y2 float64) (float64, float64) {
