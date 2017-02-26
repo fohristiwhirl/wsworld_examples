@@ -12,7 +12,8 @@ const (
     WIDTH = 1750
     HEIGHT = 850
 
-    SUBLINES = 20
+    SUBLINES = 40
+    RAND_DIST = 40
     RADIUS = 380
 )
 
@@ -68,8 +69,8 @@ func main() {
                     next_x = orbiter2_x
                     next_y = orbiter2_y
                 } else {
-                    next_x = x + (vecx * distance / (SUBLINES - float64(n))) + (rand.Float64() * 40) - 20
-                    next_y = y + (vecy * distance / (SUBLINES - float64(n))) + (rand.Float64() * 40) - 20
+                    next_x = x + (vecx * distance / (SUBLINES - float64(n))) + (rand.Float64() * RAND_DIST) - (RAND_DIST / 2)
+                    next_y = y + (vecy * distance / (SUBLINES - float64(n))) + (rand.Float64() * RAND_DIST) - (RAND_DIST / 2)
                 }
 
                 lines = append(lines, Line{x, y, next_x, next_y})
