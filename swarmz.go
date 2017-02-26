@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
     "math"
     "math/rand"
     "time"
@@ -105,6 +106,7 @@ func (s *Sim) UpdatePlayerSet() {
     for key := range s.players {
         if current_connections[key] == false {
             delete(s.players, key)
+            ws.SendDebugToAll(fmt.Sprintf("Player %d disconnected", key))
         }
     }
 
@@ -117,6 +119,7 @@ func (s *Sim) UpdatePlayerSet() {
             newplayer.x = 100
             newplayer.y = 100
             s.players[key] = newplayer
+            ws.SendDebugToAll(fmt.Sprintf("Player %d connected", key))
         }
     }
 }
