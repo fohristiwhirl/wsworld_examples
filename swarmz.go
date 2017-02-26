@@ -92,7 +92,7 @@ func (s *Sim) Init() {
     }
 
     for n := 0 ; n < BEASTS ; n++ {
-        s.beasts = append(s.beasts, &Dood{WIDTH / 2, HEIGHT / 2, 0, 0, QUEEN, nil, s})
+        s.beasts = append(s.beasts, &Dood{WIDTH / 2, HEIGHT / 2, 0, 0, BEAST, nil, s})
     }
 }
 
