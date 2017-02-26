@@ -1,6 +1,6 @@
 # wsworld_examples
 
-Examples for [wsworld](https://github.com/fohristiwhirl/wsworld).
+Examples for [wsworld](https://github.com/fohristiwhirl/wsworld)
 
     go get github.com/gorilla/websocket
     go get github.com/fohristiwhirl/wsworld
