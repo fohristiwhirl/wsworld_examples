@@ -23,8 +23,13 @@ func main() {
     var x, y, speedx, speedy, angle float64 = 100, 100, 0, 0, 0
 
     c := ws.NewCanvas()
+    z := ws.NewSoundscape()
 
     for {
+
+        c.Clear()
+        z.Clear()       // Or sounds will play repeatedly every frame...
+
         if ws.KeyDown(-1, "w") && speedy > -2 && y > 16          { speedy -= 0.1 }
         if ws.KeyDown(-1, "a") && speedx > -2 && x > 16          { speedx -= 0.1 }
         if ws.KeyDown(-1, "s") && speedy <  2 && y < HEIGHT - 16 { speedy += 0.1 }
@@ -32,11 +37,11 @@ func main() {
 
         if (x > WIDTH - 16 && speedx > 0) || (x < 16 && speedx < 0) {
             speedx *= -1
-            c.PlaySound("shot.wav")
+            z.PlaySound("shot.wav")
         }
         if (y > HEIGHT - 16 && speedy > 0) || (y < 16 && speedy < 0) {
             speedy *= -1
-            c.PlaySound("shot.wav")
+            z.PlaySound("shot.wav")
         }
 
         x += speedx
@@ -46,11 +51,11 @@ func main() {
         orbiter_x := x + 50 * math.Cos(angle)
         orbiter_y := y + 50 * math.Sin(angle)
 
-        c.Clear()
         c.AddSprite("space ship.png", x, y, speedx, speedy)
         c.AddSprite("globe.png", orbiter_x, orbiter_y, 0, 0)
 
         <- ticker
         c.SendToAll()
+        z.SendToAll()
     }
 }
