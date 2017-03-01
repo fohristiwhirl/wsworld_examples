@@ -99,6 +99,27 @@ func (s *Sim) Init() {
     }
 }
 
+func (s *Sim) Reset() {
+
+    for _, p := range s.players {
+        p.x = WIDTH / 2
+        p.y = HEIGHT / 2
+        p.speedx = 0
+        p.speedy = 0
+    }
+
+    s.queens = nil
+    s.beasts = nil
+
+    for n := 0 ; n < QUEENS ; n++ {
+        s.queens = append(s.queens, &Dood{WIDTH / 2, HEIGHT / 2, 0, 0, QUEEN, nil, s})
+    }
+
+    for n := 0 ; n < BEASTS ; n++ {
+        s.beasts = append(s.beasts, &Dood{WIDTH / 2, HEIGHT / 2, 0, 0, BEAST, nil, s})
+    }
+}
+
 func (s *Sim) UpdatePlayerSet() {
 
     current_connections := ws.PlayerSet()
@@ -127,6 +148,7 @@ func (s *Sim) UpdatePlayerSet() {
 }
 
 func (s *Sim) Iterate() {
+
     for _, d := range s.beasts {
         d.Move()
     }
@@ -135,6 +157,10 @@ func (s *Sim) Iterate() {
     }
     for _, d := range s.players {
         d.Move()
+
+        if ws.KeyDownClear(d.pid, "r") {
+            s.Reset()
+        }
     }
 }
 
