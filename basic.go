@@ -49,12 +49,13 @@ func main() {
         y += speedy
 
         angle += 0.03
-        orbiter_x := x + 50 * math.Cos(angle)
-        orbiter_y := y + 50 * math.Sin(angle)
+        orbiter_x := 50 * math.Cos(angle)
+        orbiter_y := 50 * math.Sin(angle)
 
-        c.AddLine("#ffff00", x, y, orbiter_x, orbiter_y, 0, 0)
+        c.AddLine("#ffff00", x, y, x + orbiter_x, y + orbiter_y, 0, 0)
         c.AddSprite("space ship.png", x, y, speedx, speedy)
-        c.AddSprite("globe.png", orbiter_x, orbiter_y, 0, 0)
+        c.AddSprite("globe.png", x + orbiter_x, y + orbiter_y, 0, 0)
+        c.AddText("Hello there: this works!", "#ffff00", 30, "Arial", x - orbiter_x, y - orbiter_y, 0, 0)
 
         <- ticker
         c.SendToAll()
