@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
     "math"
     "time"
     ws "github.com/fohristiwhirl/wsworld"
@@ -58,5 +59,10 @@ func main() {
         <- ticker
         c.SendToAll()
         z.SendToAll()
+
+        clicks := ws.PollClicks(-1)
+        if len(clicks) > 0 {
+            ws.SendDebugToAll(fmt.Sprintf("Click at %d, %d", clicks[len(clicks) - 1][0], clicks[len(clicks) - 1][1]))
+        }
     }
 }
