@@ -57,6 +57,8 @@ type Player struct {
 
 func main() {
 
+    rand.Seed(time.Now().UTC().UnixNano())
+
     ws.RegisterSprite("space ship.png")
     ws.Start("Swarmz 4.0", "127.0.0.1:8000", "/", "resources", WIDTH, HEIGHT, FPS, true)
 
@@ -116,8 +118,8 @@ func (s *Sim) UpdatePlayerSet() {
         if s.players[key] == nil {
             newplayer := new(Player)
             newplayer.pid = key
-            newplayer.x = 100
-            newplayer.y = 100
+            newplayer.x = WIDTH / 2
+            newplayer.y = HEIGHT / 2
             s.players[key] = newplayer
             ws.SendDebugToAll(fmt.Sprintf("Player %d connected", key))
         }
@@ -125,10 +127,10 @@ func (s *Sim) UpdatePlayerSet() {
 }
 
 func (s *Sim) Iterate() {
-    for _, d := range s.queens {
+    for _, d := range s.beasts {
         d.Move()
     }
-    for _, d := range s.beasts {
+    for _, d := range s.queens {
         d.Move()
     }
     for _, d := range s.players {
@@ -219,8 +221,8 @@ func (d *Dood) Move() {
     vecx, vecy := unit_vector(x, y, d.target.x, d.target.y)
 
     if vecx == 0 && vecy == 0 {
-        speedx += rand.Float64() * 2 - 1 * accelmod
-        speedy += rand.Float64() * 2 - 1 * accelmod
+        speedx += (rand.Float64() * 2 - 1) * accelmod
+        speedy += (rand.Float64() * 2 - 1) * accelmod
     } else {
         speedx += vecx * rand.Float64() * accelmod
         speedy += vecy * rand.Float64() * accelmod
@@ -279,7 +281,7 @@ func unit_vector(x1, y1, x2, y2 float64) (float64, float64) {
     dx := x2 - x1
     dy := y2 - y1
 
-    if (dx == 0 && dy == 0) {
+    if (dx < 0.01 && dx > -0.01 && dy < 0.01 && dy > -0.01) {
         return 0, 0
     }
 
