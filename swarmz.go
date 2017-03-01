@@ -160,6 +160,7 @@ func (s *Sim) Iterate() {
 
         if ws.KeyDownClear(d.pid, "r") {
             s.Reset()
+            ws.SendDebugToAll(fmt.Sprintf("Reset by Player %d", d.pid))
         }
     }
 }
