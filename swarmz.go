@@ -108,15 +108,20 @@ func (s *Sim) Reset() {
         p.speedy = 0
     }
 
-    s.queens = nil
-    s.beasts = nil
-
     for n := 0 ; n < QUEENS ; n++ {
-        s.queens = append(s.queens, &Dood{WIDTH / 2, HEIGHT / 2, 0, 0, QUEEN, nil, s})
+        s.queens[n].x = WIDTH / 2
+        s.queens[n].y = HEIGHT / 2
+        s.queens[n].speedx = 0
+        s.queens[n].speedy = 0
+        s.queens[n].target = nil
     }
 
     for n := 0 ; n < BEASTS ; n++ {
-        s.beasts = append(s.beasts, &Dood{WIDTH / 2, HEIGHT / 2, 0, 0, BEAST, nil, s})
+        s.beasts[n].x = WIDTH / 2
+        s.beasts[n].y = HEIGHT / 2
+        s.beasts[n].speedx = 0
+        s.beasts[n].speedy = 0
+        s.beasts[n].target = nil
     }
 }
 
