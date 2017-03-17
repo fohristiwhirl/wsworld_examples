@@ -63,7 +63,8 @@ func main() {
 
         clicks := ws.PollClicks(-1)
         if len(clicks) > 0 {
-            ws.SendDebugToAll(fmt.Sprintf("Click at %d, %d", clicks[len(clicks) - 1][0], clicks[len(clicks) - 1][1]))
+            last_click := clicks[len(clicks) - 1]
+            ws.SendDebugToAll(fmt.Sprintf("Click at %d, %d (Button %d)", last_click.X, last_click.Y, last_click.Button))
         }
     }
 }
